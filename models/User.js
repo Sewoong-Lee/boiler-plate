@@ -10,6 +10,10 @@ const uesrSchema = mongoose.Schema({
         trim: true, // 사용자가 쓴 스페이스를 지워줌
         unique: 1
     },
+    password: {
+        type: String,
+        minlength: 5
+    },
     lastname: {
         type: String,
         maxlength: 50
@@ -27,6 +31,6 @@ const uesrSchema = mongoose.Schema({
     }
 });
 
-const User = mongoose.model('User', 'uesrSchema'); //모델의 이름과 스키마의 이름
+const User = mongoose.model('User', uesrSchema); //모델의 이름과 스키마의 이름
 
-module.exports = {User} //다른곳에서도 사용 가능하도록 익스포트
+module.exports = { User } //다른곳에서도 사용 가능하도록 익스포트
