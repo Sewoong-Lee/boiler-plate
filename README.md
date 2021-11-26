@@ -212,3 +212,153 @@ mongoose.connect(config.mongoURI, {
 보안 내용을 변수로 변경
 
 .gitignore 에 dev.js 추가
+
+
+
+## Bcrypt로 비밀번호 암호화
+
+Bcrypt 라이브러리를 활용하여 비밀번호를 암호화 예정
+
+https://www.npmjs.com/package/bcrypt  참고
+
+npm install bcrypt --save
+
+로 라이브러리 다운로드
+
+salt를 이용하여 비밀번호 암호화
+
+saltRounds 란 salt가 몇글자인지 (10이면 10자리로 생성한다)
+
+User 모델에서 User을 담기 전에
+
+```jsx
+const bcrypt = require('bcrypt');
+const saltRounds = 10; //salt 길이
+
+uesrSchema.pre('save', function( next ){
+    var user = this; //위의 스키마를 가리킴 (index.js 에서 스키마에 값을 넣어줬기 떄문에 여기에서 값을 가져오면 된다.)
+
+    if(user.isModified('password')){//비밀번호가 변경될때만 암호화 하도록 조건문을 걸어줌
+
+        //비밀번호를 암호화 시킨다.
+        bcrypt.genSalt(saltRounds, function(err, salt) {
+            if(err) return next(err); //에러가 나면 에러를 반환
+
+            bcrypt.hash(user.password, salt, function(err, hash) { //위의 비밀번호값과 솔트를 넘김
+                if(err) return next(err); //에러가 나면 에러를 반환
+                user.password = hash; //스키마의 비밀번호를 암호화 비밀번호로 변경
+                next() //index.js 로 다시 돌아감
+            });
+        });
+    }else { //다른거를 바꿀때는 그냥 넘김
+        next()
+    }
+})
+```
+
+내용 추가
+
+/register 라우터
+
+```jsx
+const user = new User(req.body)
+```
+
+단계에서 비밀번호를 암호화 하여 user에 넘겨주어 암호화된 비밀번호로 데이터베이스에 저장
+
+
+
+
+
+## 로그인 기능
+
+로그인을 하기위해
+
+1. 요청된 이메일을 데이터베이스에서 있는지 찾는다.
+2. 요청한 이메일이 있다면 비밀번호가 맞는지 확인.
+3. 비밀번호까지 맞다면 유저를 위한 토큰을 생성
+
+```jsx
+//로그인기능 라우터
+app.post('/login', (req, res)=>{
+  // 1)요청된 이메일을 데이터베이스에서 있는지 찾는다.
+  User.findOne({email: req.body.email }, (err, user) => {
+    if(!user){//이메일이 없다면
+      return res.json({
+        loginSuccess: false,
+        msg: "등록된 이메일이 없습니다."
+      });
+    }
+    // 2)요청한 이메일이 있다면 비밀번호가 맞는지 확인.
+    user.comparePassword(req.body.password, (err, isMatch)=>{
+      if(!isMatch){ //비밀번호가 틀렸으면
+        return res.json({
+          loginSuccess: false,
+          msg: "비밀번호가 틀렸습니다."
+        });
+      }
+      //비밀번호까지 맞다면 유저를 위한 토큰을 생성
+      user.generateToken((err, user) => {
+        if(err) res.status(400).send(err);
+        //토큰을 쿠키에 저장한다. 
+        res.cookie("x_auth", user.token) //쿠키에  x_auth이름으로 저장
+        .status(200)
+        .json({ loginSuccess: true, userId: user._id});
+      })
+
+    })
+  })
+})
+```
+
+User 모델에서 비밀번호가 맞는지 확인 메소드
+
+```jsx
+//비밀번호가 맞는지 확인
+uesrSchema.methods.comparePassword = function(plainPassword, cb){
+    //plainPassword(사용자가 친 패스워드) 와 암호화된비밀번호 가 같은지 체크
+    bcrypt.compare(plainPassword, tins.password, function(err, isMatch){
+        if(err) return cb(err),
+        cb(null, isMatch)
+    })
+}
+```
+
+토큰 생성
+
+토큰을 위한 라이브러리 다운로드
+
+npm install jsonwebtoken --save
+
+https://www.npmjs.com/package/jsonwebtoken 참고
+
+토큰에 쿠키를 저장하기위한 라이브러리 다운
+
+npm install cookie-parser --save
+
+index.js에
+
+```jsx
+const cookieParser =  require('cookie-parser');
+
+//쿠키파서 사용 선언
+app.use(cookieParser());
+```
+
+User.js 에 토큰 생성 메소드
+
+```jsx
+//웹 토큰 생성 
+uesrSchema.methods.generateToken =function(cb){
+    var user = this;
+
+    //jsonwebtoken을 이용해서 웹토큰 생성
+    var token = jwt.sign(user._id.toHexString(), 'secretToken');
+    //user._id + 'secretToken' -> 'secretToken' -> user._id
+    user.token = token; //생성한 토큰을 스키마 안에 넣음
+    user.save(function(err, user){
+        if(err) return cb(err);
+        cb(null, user);
+    });
+}
+```
