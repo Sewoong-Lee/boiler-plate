@@ -79,6 +79,23 @@ uesrSchema.methods.generateToken =function(cb){
     });
 }
 
+uesrSchema.statics.findByToken = function(token, cb){
+    var user = this;
+    //복호화 하는 작업
+    //토큰은 decode한다.
+    jwt.verify(token, 'secretToken', function(err, decode){
+        //유저 아이디를 이용해서 유저를 찾은 다음
+        //클라이언트에서 가져온 token과 DB에 보관된 토큰이 일치하는지 확인
+
+        user.findOne({ "_id": decode, "token": token}, function(err, user){
+            if(err){
+                return cb(err);
+            }
+            cb(null, user);
+        })
+    })
+}
+
 const User = mongoose.model('User', uesrSchema); //모델의 이름과 스키마의 이름
 
 module.exports = { User } //다른곳에서도 사용 가능하도록 익스포트

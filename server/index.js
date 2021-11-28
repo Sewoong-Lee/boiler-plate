@@ -5,6 +5,8 @@ const config = require('./config/key'); //몽고db 키를 가져옴
 const cookieParser =  require('cookie-parser');
 //const bodyParser = require('body-parser'); //바디파서 가져옴
 const { User } = require("./models/User"); //유저 모델을 가져옴
+const { auth } = require("./middleware/auth"); //어스 가져옴
+
 
 const mongoose = require('mongoose'); //몽구스 모듈을 가져옴
 mongoose.connect(config.mongoURI, {
@@ -23,7 +25,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 //쿠키파서 사용 선언
 app.use(cookieParser());
-app.post('/register', (req, res)=>{
+app.post('/api/users/register', (req, res)=>{
   //회원 가입시 필요한 정보들을 클라이언트에서 가져오면
   //그것들을 데이터베이스에 넣어준다.
   const user = new User(req.body) //바디파서를 통하여 req에 데이터를 읽어 User 모델에 넣어줌
@@ -38,7 +40,7 @@ app.post('/register', (req, res)=>{
 })
 
 //로그인기능 라우터
-app.post('/login', (req, res)=>{
+app.post('/api/users/login', (req, res)=>{
   // 1)요청된 이메일을 데이터베이스에서 있는지 찾는다.
   User.findOne({email: req.body.email }, (err, user) => {
     if(!user){//이메일이 없다면
@@ -67,6 +69,39 @@ app.post('/login', (req, res)=>{
     })
   })
 })
+
+//Auth 기능 생성
+app.get('/api/users/auth', auth, (req, res) => {
+  //auth 라는 미드웨어를 생성 (엔드포인트에서 리퀘스트를 받고 콜백 펑션을 하기전에 중간에서의 작업) 
+
+  //미들웨어를 거치고 왔다면 Authentication 이 True 라는말 이므로 클라이언트에 전달 해줘야함
+  res.status(200).json({
+    _id : req.user._id,
+    isAdmin: req.user.role === 0 ? false : true, //0이면 일반 아니면 관리자
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    Image: req.user.Image
+  })
+})
+
+//로그아웃 라우트 만들기
+app.get('/api/users/logout', auth, (req, res) => {
+    User.findOneAndUpdate({ _id: req.user._id}, 
+      { token: ""}
+      , (err, user) => {
+        if(err) return res.json({ success: true, err});
+        return res.status(200).send({
+          success: true
+        })
+      })
+})
+
+
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
