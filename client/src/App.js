@@ -1,25 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route
+} from "react-router-dom";
+import LandingPage from './components/views/LandingPage/LandingPage'
+import LogInPage from './components/views/LogInPage/LogInPage'
+import NavBar from './components/views/NavBar/NavBar'
+import RegisterPage from './components/views/RegisterPage/RegisterPage'
+import Footer from './components/views/Footer/Footer'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <Router>
+      <Routes>
+        <Route path={"/login"} element={<LogInPage />} />
+        <Route path={"/register"} element={<RegisterPage />} />
+        {/* <Route path={"/"} element={<NavBar />} /> */}
+        {/* <Route path={"/"} element={<Footer />} /> */}
+        <Route path={process.env.PUBLIC_URL + "/"} element={<LandingPage />} />
+      </Routes>
+    </Router>
+  )
 }
 
-export default App;
+export default App
+

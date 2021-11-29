@@ -19,6 +19,10 @@ app.get('/', (req, res) => {
   res.send('인프런 노드 리액트 기초 강의 (노드몬 설치)')
 })
 
+app.get('/api/hello', (req,res)=> {
+  res.send("axios 접촉")
+})
+
 //application/x-www-form-urlencoded 형태의 데이터를 분석해서 가져올 수 있게끔
 app.use(express.urlencoded({extended: true}));
 //application/json 타입을 분석해서 가져올 수 있게끔
