@@ -33,7 +33,8 @@ app.post('/api/users/register', (req, res)=>{
   //회원 가입시 필요한 정보들을 클라이언트에서 가져오면
   //그것들을 데이터베이스에 넣어준다.
   const user = new User(req.body) //바디파서를 통하여 req에 데이터를 읽어 User 모델에 넣어줌
-  
+  console.log('회원가입 몽고 간다~');
+  console.log(user);
   //비밀번호 암호화 후 넘겨받은 값을 이용하여 데이터베이스에 저장
   user.save((err, userInfo)=>{
     if(err) return res.json({success: false, err})
