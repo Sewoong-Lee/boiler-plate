@@ -1,7 +1,7 @@
 import React, { Component, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
-
+import NavBar from '../NavBar/NavBar'
 function LandingPage() {
     let navigate = useNavigate();
 
@@ -23,7 +23,8 @@ function LandingPage() {
     }
 
     return(
-        <div> 
+        <div>
+            <NavBar />
             <h2>시작 페이지</h2>
             <button onClick={onClickHandler}>
                 로그아웃

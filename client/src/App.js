@@ -15,8 +15,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* <Route path={"/"} element={<NavBar />} />
-        <Route path={"/"} element={<Footer />} /> */}
+        {/* <Route element={<NavBar />} />
+        <Route element={<Footer />} /> */}
         <Route path={"/login"} element={<LogInPage />} />
         <Route path={"/register"} element={<RegisterPage />} />
         <Route path={process.env.PUBLIC_URL + "/"} element={<LandingPage />} />
